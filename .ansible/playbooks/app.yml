@@ -1,0 +1,10 @@
+---
+# APP
+- hosts: "{{flask_servers|default('all')}}"
+  roles: [corpusops.roles/ansible_plugins]
+  tasks:
+  - when: ["cops_flask_lifecycle_app|default(true)"]
+    tags: ["cops_flask_lifecycle_app"]
+    block:
+    - include_role: {name: flask_vars, allow_duplicates: false}
+    - include_role: {name: flask,      allow_duplicates: false}
