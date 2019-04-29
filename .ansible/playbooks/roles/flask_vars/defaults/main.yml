@@ -73,7 +73,8 @@ cops_flask_docker_env_freeform: |-
 cops_flask_gunicorn_class: "sync"
 cops_flask_gunicorn_extra_args: ""
 cops_flask_env: production
-cops_flask_backuped_dbs: all
+# can be 'all' to backup all
+cops_flask_backuped_dbs: "{{cops_flask_db_name}}"
 cops_flask_docker_env_defaults: |-
   # This need to be changed in production
   FLASK_ENV={{cops_flask_env}}
