@@ -1,7 +1,7 @@
 ---
 cops_flask_name: flaskinstance
 cops_flask_project_module_name: "{{cops_flask_name}}"
-cops_flask_settings_module: "{{cops_flask_project_module_name}}.settings.instances.{{cops_flask_deploy_env}}"
+cops_flask_settings_module: "{{cops_flask_project_module_name}}.config.instances.{{cops_flask_deploy_env}}"
 cops_flask_py_ver: "3.7"
 cops_flask_deploy_env: "dev"
 cops_flask_docker_image_tag: "{{cops_flask_name}}"
