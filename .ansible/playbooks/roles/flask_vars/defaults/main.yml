@@ -73,6 +73,7 @@ cops_flask_docker_env_freeform: |-
 cops_flask_gunicorn_class: "sync"
 cops_flask_gunicorn_extra_args: ""
 cops_flask_env: production
+cops_flask_backuped_dbs: all
 cops_flask_docker_env_defaults: |-
   # This need to be changed in production
   FLASK_ENV={{cops_flask_env}}
@@ -115,6 +116,7 @@ cops_flask_docker_env_defaults: |-
   MAILCATCHER_PASSWORD={{cops_flask_mailcatcher_password}}
   FLASK__REDIS_URL={{cops_flask_redis_url}}
   REDIS_URL={{cops_flask_redis_url}}
+  DBS_DBNAMES={{cops_flask_backuped_dbs}}
 # free form for params inside dockerenv
 cops_flask_dotenv: |-
   APP_TYPE=flask

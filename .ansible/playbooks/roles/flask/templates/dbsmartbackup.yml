@@ -8,8 +8,8 @@ cops_dbsmartbackup_confs:
     keep_logs: 7
     _periodicity: "0 3 * * *"
     free_form: |
-      export HOST="db"
-      export PORT="5432"
+      export HOST="{{cops_flask_db_host}}"
+      export PORT="{{cops_flask_db_port}}"
       export DBNAMES="{{cops_flask_db_name}}"
       export PASSWORD="{{cops_flask_db_password}}"
       export DBUSER="{{cops_flask_db_user}}"
