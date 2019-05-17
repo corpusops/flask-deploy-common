@@ -6,6 +6,10 @@ TOPDIR=$(pwd)
 
 # now be in stop-on-error mode
 set -e
+
+# export back the gateway ip as a host
+ip -4 route list match 0/0 | awk '{print $3" host.docker.internal"}' >> /etc/hosts
+
 # load locales & default env
 # load this first as it resets $PATH
 for i in /etc/environment /etc/default/locale;do

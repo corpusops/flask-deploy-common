@@ -28,7 +28,7 @@ RUN bash -c 'set -ex \
 
 ARG WITH_IMPOSM=
 ENV WITH_IMPOSM=$WITH_IMPOSM
-ADD --chown=flask:flask sys/add_*sh /code/sys/
+ADD --chown=flask:flask local/flask-deploy-common/sys/add_*sh /code/sys/
 RUN bash -exc ': \
     && if [[ -n "$WITH_IMPOSM" ]];then ./sys/add_imposm.sh;fi \
     '
@@ -41,6 +41,14 @@ ADD --chown=flask:flask \
     /code/
 ADD --chown=flask:flask lib ${PIP_SRC}/
 ADD --chown=flask:flask src /code/src/
+ARG VSCODE_VERSION=
+ARG PYCHARM_VERSION=
+ENV VSCODE_VERSION=$VSCODE_VERSION
+ENV PYCHARM_VERSION=$PYCHARM_VERSION
+ARG WITH_VSCODE=0
+ENV WITH_VSCODE=$WITH_VSCODE
+ARG WITH_PYCHARM=0
+ENV WITH_PYCHARM=$WITH_PYCHARM
 RUN bash -exc ': \
     && find /code -not -user flask \
     | while read f;do chown flask:flask "$f";done \
@@ -56,10 +64,14 @@ RUN bash -exc ': \
                 -r ./requirements-dev.txt;\
         fi \
     fi \
+    && . venv/bin/activate &>/dev/null \
+    && if [[ -n "$BUILD_DEV" ]];then \
+          if [ "x$WITH_VSCODE" = "x1" ];then python -m pip install -U "ptvsd${VSCODE_VERSION}";fi \
+          && if [ "x$WITH_PYCHARM" = "x1" ];then python -m pip install -U "pydevd-pycharm${PYCHARM_VERSION}";fi; \
+    fi \
     && if [ -e Pipfile ];then \
         : \
         && pipenv_args=\"\" \
-        && . venv/bin/activate &>/dev/null \
         && if [[ -n \"$BUILD_DEV\" ]];then \
             pipenv_args=\"--dev\"; \
         fi \
