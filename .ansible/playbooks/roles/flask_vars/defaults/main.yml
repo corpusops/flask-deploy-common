@@ -147,7 +147,7 @@ cops_flask_code_rsync_opts: [
 cops_flask_backup_postgresql: "{{'5432' == '{0}'.format(cops_flask_db_port)}}"
 cops_flask_backup_paths_to_backup:
 - "{{cops_flask_dir}}"
-cops_flask_backup_docker_volumes: [mediafiles]
+cops_flask_backup_docker_volumes: []
 cops_flask_backup_docker_volumes_: |-
   {% set res = [] %}
   {% for i in cops_flask_backup_docker_volumes %}
