@@ -65,7 +65,7 @@ RUN bash -exc ': \
         fi \
     fi \
     && . venv/bin/activate &>/dev/null \
-    && if [[ -n "$BUILD_DEV" ]];then \
+    && if [[ -n \"$BUILD_DEV\" ]];then \
           if [ "x$WITH_VSCODE" = "x1" ];then python -m pip install -U "ptvsd${VSCODE_VERSION}";fi \
           && if [ "x$WITH_PYCHARM" = "x1" ];then python -m pip install -U "pydevd-pycharm${PYCHARM_VERSION}";fi; \
     fi \
