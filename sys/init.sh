@@ -26,6 +26,7 @@ PROJECT_DIR=$TOPDIR
 if [[ -n $SDEBUG ]];then set -x;fi
 
 DEFAULT_IMAGE_MODE=gunicorn
+NO_GUNICORN=${NO_GUNICORN-}
 if [[ -n $NO_GUNICORN ]];then
     # retro compat with old setups
     DEFAULT_IMAGE_MODE=fg
@@ -44,7 +45,6 @@ if [[ -n $@ ]];then
 fi
 NO_STARTUP_LOGS=${NO_STARTUP_LOGS-${NO_MIGRATE-$DEFAULT_NO_STARTUP_LOGS}}
 NO_MIGRATE=${NO_MIGRATE-$DEFAULT_NO_MIGRATE}
-NO_GUNICORN=${NO_GUNICORN-}
 NO_IMAGE_SETUP="${NO_IMAGE_SETUP:-"1"}"
 FORCE_IMAGE_SETUP="${FORCE_IMAGE_SETUP:-"1"}"
 DO_IMAGE_SETUP_MODES="${DO_IMAGE_SETUP_MODES:-"fg|gunicorn"}"
@@ -59,8 +59,11 @@ export APP_GROUP="$APP_USER"
 export USER_DIRS=". public/media"
 SHELL_USER=${SHELL_USER:-${APP_USER}}
 
+# export back the gateway ip as a host
+ip -4 route list match 0/0 | awk '{print $3" host.docker.internal"}' >> /etc/hosts
+
 # flask variables
-export GUNICORN_CLASS=${GUNICORN_CLASS:-gevent}
+export GUNICORN_CLASS=${GUNICORN_CLASS:-sync}
 export GUNICORN_EXTRA_ARGS="${GUNICORN_EXTRA_ARGS-}"
 export GUNICORN_WORKERS=${GUNICORN_WORKERS:-4}
 export FLASK_WSGI=${FLASK_WSGI:-project.wsgi}
