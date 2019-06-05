@@ -24,7 +24,7 @@ RUN bash -c 'set -ex \
     && apt-get install -qq -y $(grep -vE "^\s*#" /code/apt.txt  | tr "\n" " ") \
     && apt-get clean all && apt-get autoclean \
     && : "project user & workdir" \
-    && if ! ( getent passwd flask 2>/dev/null );then useradd -ms /bin/bash flask --uid 1000;fi'
+    && if ! ( getent passwd flask &>/dev/null );then useradd -ms /bin/bash flask --uid 1000;fi'
 
 ARG WITH_IMPOSM=
 ENV WITH_IMPOSM=$WITH_IMPOSM
@@ -84,7 +84,8 @@ ADD --chown=flask:flask tests /code/tests/
 ADD sys                            /code/sys
 ADD local/flask-deploy-common/     /code/local/flask-deploy-common/
 RUN bash -exc ': \
-    && cd /code && mkdir init data \
+    && cd /code \
+    && for i in init data;do if [ ! -e $i ];then mkdir $i;fi;done \
     && find /code -not -user flask \
     | while read f;do chown flask:flask "$f";done \
     && cp -frnv /code/local/flask-deploy-common/sys/* sys \
