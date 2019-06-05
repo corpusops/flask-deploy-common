@@ -24,7 +24,7 @@ RUN bash -c 'set -ex \
     && apt-get install -qq -y $(grep -vE "^\s*#" /code/apt.txt  | tr "\n" " ") \
     && apt-get clean all && apt-get autoclean \
     && : "project user & workdir" \
-    && useradd -ms /bin/bash flask --uid 1000'
+    && if ! ( getent passwd flask 2>/dev/null );then useradd -ms /bin/bash flask --uid 1000;fi'
 
 ARG WITH_IMPOSM=
 ENV WITH_IMPOSM=$WITH_IMPOSM
