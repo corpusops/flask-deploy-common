@@ -126,6 +126,7 @@ cops_flask_dotenv: |-
   FLASK_PY_VER={{ cops_flask_py_ver }}
   FLASK_NAME={{ cops_flask_name }}
   COMPOSE_PROJECT_NAME={{cops_flask_composename}}
+  CONTROL_COMPOSE_FILES={{cops_flask_compose_files|join(' ')}}
   CI_COMMIT_SHA={{cops_flask_gitref}}
   FLASK_IMAGE={{ cops_flask_docker_image }}
   FLASK_IMAGE_VERSION={{cops_flask_docker_tag}}
