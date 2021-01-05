@@ -76,30 +76,9 @@ cops_flask_env: production
 # can be 'all' to backup all
 cops_flask_backuped_dbs: "{{cops_flask_db_name}}"
 cops_flask_docker_env_defaults: |-
-  # This need to be changed in production
-  FLASK_ENV={{cops_flask_env}}
-  SECRET_KEY={{ cops_flask_secret_key }}
-  # gunicorn
-  GUNICORN_CLASS={{cops_flask_gunicorn_class}}
-  GUNICORN_EXTRA_ARGS={{cops_flask_gunicorn_extra_args}}
-  # db
-  POSTGRES_HOST={{ cops_flask_db_host }}
-  POSTGRES_PORT={{ cops_flask_db_port }}
-  POSTGRES_USER={{ cops_flask_db_user }}
-  POSTGRES_DB={{ cops_flask_db_name }}
-  POSTGRES_PASSWORD={{cops_flask_db_password }}
-  PGPASSWD={{cops_flask_db_password }}
   # cors
   FLASK__CORS_ORIGIN_WHITELIST={{cops_flask_hosts_whitelist}}
   FLASK__ALLOWED_HOSTS={{cops_flask_hosts_whitelist}}
-  FLASK__DEPLOY_ENV={{cops_flask_deploy_env}}
-  FLASK__HTTP_PROTECT_USER={{cops_flask_http_protect_user}}
-  FLASK__HTTP_PROTECT_PASSWORD={{cops_flask_http_protect_password}}
-  {% if cops_flask_sentry_dsn %}
-  SENTRY_DSN={{cops_flask_sentry_dsn}}
-  SENTRY_RELEASE={{cops_flask_docker_tag}}
-  SENTRY_ENVIRONMENT={{cops_flask_deploy_env}}
-  {% endif %}
   {% if cops_flask_devmode %}
   FLASK__CORS_ORIGIN_ALLOW_ALL=y
   FLASK__DEBUG=y
@@ -113,13 +92,34 @@ cops_flask_docker_env_defaults: |-
   FLASK__EMAIL_PORT={{cops_flask_email_host_port}}
   FLASK__EMAIL_HOST_USER={{cops_flask_email_host_user}}
   FLASK__EMAIL_HOST_PASSWORD={{cops_flask_email_host_password}}
-  MAILCATCHER_USER={{cops_flask_mailcatcher_user}}
-  MAILCATCHER_PASSWORD={{cops_flask_mailcatcher_password}}
-  FLASK__REDIS_URL={{cops_flask_redis_url}}
-  REDIS_URL={{cops_flask_redis_url}}
-  DBS_DBNAMES={{cops_flask_backuped_dbs}}
 # free form for params inside dockerenv
 cops_flask_dotenv: |-
+  FLASK__REDIS_URL={{cops_flask_redis_url}}
+  FLASK__DEPLOY_ENV={{cops_flask_deploy_env}}
+  FLASK__HTTP_PROTECT_USER={{cops_flask_http_protect_user}}
+  FLASK__HTTP_PROTECT_PASSWORD={{cops_flask_http_protect_password}}
+  {% if cops_flask_sentry_dsn %}
+  SENTRY_DSN={{cops_flask_sentry_dsn}}
+  SENTRY_RELEASE={{cops_flask_docker_tag}}
+  SENTRY_ENVIRONMENT={{cops_flask_deploy_env}}
+  {% endif %}
+  REDIS_URL={{cops_flask_redis_url}}
+  DBS_DBNAMES={{cops_flask_backuped_dbs}}
+  MAILCATCHER_USER={{cops_flask_mailcatcher_user}}
+  MAILCATCHER_PASSWORD={{cops_flask_mailcatcher_password}}
+  # This need to be changed in production
+  FLASK_ENV={{cops_flask_env}}
+  SECRET_KEY={{ cops_flask_secret_key }}
+  # gunicorn
+  GUNICORN_CLASS={{cops_flask_gunicorn_class}}
+  GUNICORN_EXTRA_ARGS={{cops_flask_gunicorn_extra_args}}
+  # db
+  POSTGRES_HOST={{ cops_flask_db_host }}
+  POSTGRES_PORT={{ cops_flask_db_port }}
+  POSTGRES_USER={{ cops_flask_db_user }}
+  POSTGRES_DB={{ cops_flask_db_name }}
+  POSTGRES_PASSWORD={{cops_flask_db_password }}
+  PGPASSWD={{cops_flask_db_password }}
   FLASK_SETTINGS_MODULE={{cops_flask_settings_module}}
   FLASK_NAME={{ cops_flask_name }}
   COMPOSE_PROJECT_NAME={{cops_flask_composename}}
