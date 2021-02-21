@@ -75,7 +75,9 @@ cops_flask_gunicorn_extra_args: ""
 cops_flask_env: production
 # can be 'all' to backup all
 cops_flask_backuped_dbs: "{{cops_flask_db_name}}"
-cops_flask_docker_env_defaults: |-
+cops_flask_docker_env_defaults: ""
+# free form for params inside dockerenv
+cops_flask_dotenv: |-
   # cors
   FLASK__CORS_ORIGIN_WHITELIST={{cops_flask_hosts_whitelist}}
   FLASK__ALLOWED_HOSTS={{cops_flask_hosts_whitelist}}
@@ -92,8 +94,6 @@ cops_flask_docker_env_defaults: |-
   FLASK__EMAIL_PORT={{cops_flask_email_host_port}}
   FLASK__EMAIL_HOST_USER={{cops_flask_email_host_user}}
   FLASK__EMAIL_HOST_PASSWORD={{cops_flask_email_host_password}}
-# free form for params inside dockerenv
-cops_flask_dotenv: |-
   FLASK__REDIS_URL={{cops_flask_redis_url}}
   FLASK__DEPLOY_ENV={{cops_flask_deploy_env}}
   FLASK__HTTP_PROTECT_USER={{cops_flask_http_protect_user}}
