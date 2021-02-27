@@ -14,6 +14,11 @@ if ( ip -4 route list match 0/0 &>/dev/null );then
         | awk '{print $3" host.docker.internal"}' >> /etc/hosts
 fi
 
+if [ -e /opt/.pycharm_helpers ];then
+    OPYPATH="${PYTHONPATH-}"
+    IMAGE_MODE="${FORCE_IMAGE_MODE-pycharm}"
+fi
+
 # load locales & default env
 # load this first as it resets $PATH
 for i in /etc/environment /etc/default/locale;do
@@ -296,6 +301,20 @@ fi
 # only display startup logs when we start in daemon mode
 # and try to hide most when starting an (eventually interactive) shell.
 if ! ( echo "$NO_STARTUP_LOGS" | egrep -iq "^(no?)?$" );then pre 2>/dev/null;else pre;fi
+
+if [[ $IMAGE_MODE = "pycharm" ]];then
+    f=$(mktemp -p /bin)
+    cmdargs="${@//$OLDPWD/\/code}"
+    cat >$f <<EOF
+#!/bin/bash
+. /code/venv/bin/activate
+export PYTHONPATH=$OPYPATH:\${PYTHONPATH-}
+echo PYTHONPATH: \$PYTHONPATH
+python $cmdargs
+EOF
+    chmod 755 $f
+    exec gosu $SHELL_USER $f
+fi
 
 if [[ -z "$@" ]]; then
     if ! ( echo $IMAGE_MODE | egrep -q "$IMAGE_MODES" );then
