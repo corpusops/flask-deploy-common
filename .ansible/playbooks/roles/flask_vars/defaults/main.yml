@@ -3,7 +3,6 @@ cops_flask_name: flaskinstance
 cops_flask_project_module_name: "{{cops_flask_name}}"
 cops_flask_settings_module_name: "settings"
 cops_flask_settings_module: "{{cops_flask_project_module_name}}.{{cops_flask_settings_module_name.replace('.', '/')}}.instances.{{cops_flask_deploy_env}}"
-cops_flask_py_ver: "3.7"
 cops_flask_deploy_env: "dev"
 cops_flask_docker_image_tag: "{{cops_flask_name}}"
 cops_flask_default_docker_tag: "latest"
@@ -121,15 +120,16 @@ cops_flask_docker_env_defaults: |-
   DBS_DBNAMES={{cops_flask_backuped_dbs}}
 # free form for params inside dockerenv
 cops_flask_dotenv: |-
-  APP_TYPE=flask
   FLASK_SETTINGS_MODULE={{cops_flask_settings_module}}
-  FLASK_PY_VER={{ cops_flask_py_ver }}
   FLASK_NAME={{ cops_flask_name }}
   COMPOSE_PROJECT_NAME={{cops_flask_composename}}
   CONTROL_COMPOSE_FILES={{cops_flask_compose_files|join(' ')}}
   CI_COMMIT_SHA={{cops_flask_gitref}}
   FLASK_IMAGE={{ cops_flask_docker_image }}
   FLASK_IMAGE_VERSION={{cops_flask_docker_tag}}
+  # left for retrocompat
+  FLASK_PY_VER={{ cops_flask_py_ver }}
+  APP_TYPE=flask
 cops_flask_dotenv_extra: ""
 # free form for params inside dockerenv
 cops_flask_docker_env_extra: ""
@@ -165,3 +165,5 @@ cops_flask_backup_pgdump_urls:
   docker_dir: "{{cops_flask_dir}}"
   docker_service: backup
   docker_compose: "{{cops_flask_dc}}"
+# left for retrocompat
+cops_flask_py_ver: "3.7"
