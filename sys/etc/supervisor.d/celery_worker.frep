@@ -1,9 +1,9 @@
 
-{{ $wdfolder := .Env.GUNICORN_WORKING_DIRECTORY | default "/code" }}
-[program:gunicorn]
+{{ $wdfolder := .Env.CELERY_WORKING_DIRECTORY | default "/code" }}
+[program:celery_beat]
 # use gosu to have all flask groups
 command = gosu flask sh -c 'set -ex \
-  && exec gunicorn {{ .Env.FLASK_WSGI }} -w {{ .Env.GUNICORN_WORKERS }} -b {{ .Env.FLASK_LISTEN }} -k {{ .Env.GUNICORN_CLASS }} {{ .Env.GUNICORN_EXTRA_ARGS}}'
+  && celery -A {{ .Env.FLASK_CELERY }} beat -l {{ .Env.CELERY_LOGLEVEL }}'
 autostart = true
 autorestart = true
 killasgroup = true

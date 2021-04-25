@@ -75,11 +75,14 @@ ADD --chown=flask:flask src /code/src/
 RUN bash -exc ': \
     && date && find /code -not -user flask \
     | while read f;do chown flask:flask "$f";done \
-    && gosu flask:flask bash -euxc "python${PY_VER} -m venv venv \
+    && gosu flask:flask bash -exc "python${PY_VER} -m venv venv \
+    && if [ ! -e requirements ];then mkdir requirements;fi \
+    && devreqs=requirements-dev.txt && reqs=requirements.txt \
+    && : handle retrocompat with both old and new layouts /requirements.txt and /requirements/requirements.txt \
+    && find -maxdepth 1 -iname \"requirement*txt\" -or -name \"Pip*\" | sed -re \"s|./||\" \
+    | while read r;do mv -vf \${r} requirements && ln -fsv requirements/\${r};done \
     && venv/bin/pip install -U --no-cache-dir \"\${SETUPTOOLS_REQ}\" \"\${WHEEL_REQ}\" \"\${PIPENV_REQ}\" \"\${PIP_REQ}\" \
-    && devreqs=requirements-dev.txt \
-    && reqs=requirements.txt \
-    && . venv/bin/activate \
+    && set +x && . venv/bin/activate && set -x\
     && if [ -e Pipfile ] || [ \"x${FORCE_PIPENV}\" = \"x1\" ];then \
         pipenv_args=\"\" \
         && if [[ -n \"$BUILD_DEV\" ]];then pipenv_args=\"--dev\";fi \
@@ -115,7 +118,9 @@ RUN bash -exc ': \
 # Final cleanup, only work if using the docker build --squash option
 ARG DEV_DEPENDENCIES_PATTERN='^#\s*dev dependencies'
 RUN \
-  set -ex && if $(egrep -q "${DEV_DEPENDENCIES_PATTERN}" /code/apt.txt);then \
+  set -ex \
+  && sed -i -re "s/(python-?)[0-9]\.[0-9]+/\1$PY_VER/g" /code/apt.txt \
+  && if $(egrep -q "${DEV_DEPENDENCIES_PATTERN}" /code/apt.txt);then \
     apt-get remove --auto-remove --purge \
       $(sed "1,/${DEV_DEPENDENCIES_PATTERN}/ d" /code/apt.txt|grep -v '^#'|tr "\n" " ");\
   fi \

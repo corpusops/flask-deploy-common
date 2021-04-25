@@ -1,4 +1,5 @@
 #!/bin/bash
+
 SDEBUG=${SDEBUG-}
 SCRIPTSDIR="$(dirname $(readlink -f "$0"))"
 cd "$SCRIPTSDIR/.."
@@ -25,6 +26,9 @@ for VENV in ./venv ../venv;do
 done
 
 PROJECT_DIR=$TOPDIR
+if [ -e src ];then
+    PROJECT_DIR=$TOPDIR/src
+fi
 # activate shell debug if SDEBUG is set
 if [[ -n $SDEBUG ]];then set -x;fi
 
@@ -35,7 +39,7 @@ if [[ -n $NO_GUNICORN ]];then
     DEFAULT_IMAGE_MODE=fg
 fi
 export IMAGE_MODE=${IMAGE_MODE:-${DEFAULT_IMAGE_MODE}}
-IMAGE_MODES="(cron|gunicorn|fg)"
+IMAGE_MODES="(cron|gunicorn|fg|celery_worker|celery_flower|celery_beat)"
 NO_START=${NO_START-}
 FLASK_CONF_PREFIX="${FLASK_CONF_PREFIX:-"FLASK__"}"
 export FLASK_APP="${FLASK_APP:-${FLASK_NAME:-project}.${FLASK_MODULE:-api}}"
@@ -51,19 +55,19 @@ NO_MIGRATE=${NO_MIGRATE-$DEFAULT_NO_MIGRATE}
 NO_IMAGE_SETUP="${NO_IMAGE_SETUP:-"1"}"
 FORCE_IMAGE_SETUP="${FORCE_IMAGE_SETUP:-"1"}"
 DO_IMAGE_SETUP_MODES="${DO_IMAGE_SETUP_MODES:-"fg|gunicorn"}"
+export PIP_SRC=${PIP_SRC:-/code/pipsrc}
 NO_PIPENV_INSTALL=${NO_PIPENV_INSTALL-1}
 PIPENV_INSTALL_ARGS="${PIPENV_INSTALL_ARGS-"--ignore-pipfile"}"
 
 FINDPERMS_PERMS_DIRS_CANDIDATES="${FINDPERMS_PERMS_DIRS_CANDIDATES:-"public private"}"
-FINDPERMS_OWNERSHIP_DIRS_CANDIDATES="${FINDPERMS_OWNERSHIP_DIRS_CANDIDATES:-"public private"}"
+FINDPERMS_OWNERSHIP_DIRS_CANDIDATES="${FINDPERMS_OWNERSHIP_DIRS_CANDIDATES:-"public private data"}"
 export APP_TYPE="${APP_TYPE:-flask}"
 export APP_USER="${APP_USER:-$APP_TYPE}"
 export APP_GROUP="$APP_USER"
-export USER_DIRS=". public/media"
+export EXTRA_USER_DIRS="${EXTRA_USER_DIRS-}"
+export USER_DIRS="${USER_DIRS:-". public/media data /logs/cron ${EXTRA_USER_DIRS}"}"
 SHELL_USER=${SHELL_USER:-${APP_USER}}
 
-# export back the gateway ip as a host
-ip -4 route list match 0/0 | awk '{print $3" host.docker.internal"}' >> /etc/hosts
 
 # flask variables
 export GUNICORN_CLASS=${GUNICORN_CLASS:-sync}
@@ -72,6 +76,20 @@ export GUNICORN_WORKERS=${GUNICORN_WORKERS:-4}
 export FLASK_WSGI=${FLASK_WSGI:-project.wsgi}
 export FLASK_LISTEN=${FLASK_LISTEN:-"$FLASK_HOST:$FLASK_PORT"}
 export FLASK_ENV=${FLASK_ENV-production}
+
+# Celery variables
+export CELERY_LOGLEVEL=${CELERY_LOGLEVEL:-info}
+export FLASK_CELERY=${FLASK_CELERY:-project.celery:app}
+export FLASK_CELERY_BROKER="${FLASK_CELERY_BROKER:-amqp}"
+export FLASK_CELERY_HOST="${FLASK_CELERY_HOST:-celery-broker}"
+export FLASK_CELERY_VHOST="${FLASK_CELERY_VHOST:-}"
+if ( echo "$FLASK_CELERY_BROKER" | egrep -q "rabbitmq|amqp" );then
+    burl="amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@$FLASK_CELERY_HOST/$FLASK_CELERY_VHOST/"
+elif [[ "$FLASK_CELERY_BROKER" = "redis" ]];then
+    burl="redis://$FLASK_CELERY_HOST/"
+fi
+export FLASK__CELERY_BROKER_URL="${FLASK__CELERY_BROKER_URL:-$burl}"
+
 
 log() {
     echo "$@" >&2;
@@ -203,6 +221,11 @@ fixperms() {
             done < <(find "$i" -type f)
         fi
     done
+    for i in $USER_DIRS;do
+        if [ -e "$i" ];then
+            chown $APP_USER:$APP_GROUP "$i"
+        fi
+    done
     while read f;do chmod 0755 "$f";done < \
         <(find $FINDPERMS_PERMS_DIRS_CANDIDATES -type d \
           -not \( -perm 0755 2>/dev/null\) |sort)
@@ -221,7 +244,7 @@ usage() {
     echo "EX:
 $drun [ -e FORCE_IMAGE_SETUP] [-e IMAGE_MODE=\$mode]
     docker run <img>
-        run either flask, cron, or celery beat|worker daemon
+        run either flask, cron, or celery flower|beat|worker daemon
         (IMAGE_MODE: $IMAGE_MODES)
 
 $drun \$args: run commands with the context ignited inside the container
@@ -231,6 +254,8 @@ $drun [ -e FORCE_IMAGE_SETUP=1] [ -e NO_IMAGE_SETUP=1] [-e SHELL_USER=\$ANOTHERU
 (default user: $SHELL_USER)
 (default mode: $IMAGE_MODE)
 
+If FORCE_IMAGE_SETUP is set: run image setup
+If NO_IMAGE_SETUP is set: migrate/collect static is skipped, no matter what
 If NO_START is set: start an infinite loop doing nothing (for dummy containers in dev)
 "
   exit 0
@@ -255,13 +280,16 @@ fi
 # Run app
 pre() {
     configure
-    services_setup
+    # fixperms may have to be done on first run
+    if ! ( services_setup );then
+        fixperms
+        services_setup
+    fi
     fixperms
 }
 
-
 # reinstall in develop any missing editable dep
-if [ -e Pipfile ] && ( egrep -q  "editable\s*=\s*true" Pipfile ) && [[ -z "$(ls -1 lib/ | grep -vi readme)" ]] && [[ "$NO_PIPENV_INSTALL" != "1" ]];then
+if [ -e Pipfile ] && ( egrep -q  "editable\s*=\s*true" Pipfile ) && [[ -z "$(ls -1 ${PIP_SRC}/ | grep -vi readme)" ]] && [[ "$NO_PIPENV_INSTALL" != "1" ]];then
     pipenv install $PIPENV_INSTALL_ARGS 1>&2
 fi
 
