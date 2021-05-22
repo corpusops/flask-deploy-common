@@ -75,7 +75,7 @@ ADD --chown=flask:flask src /code/src/
 RUN bash -exc ': \
     && date && find /code -not -user flask \
     | while read f;do chown flask:flask "$f";done \
-    && gosu flask:flask bash -exc "python${PY_VER} -m venv venv \
+    && gosu flask:flask bash -exc "if [ ! -e venv ];then python${PY_VER} -m venv venv;fi \
     && if [ ! -e requirements ];then mkdir requirements;fi \
     && devreqs=requirements-dev.txt && reqs=requirements.txt \
     && : handle retrocompat with both old and new layouts /requirements.txt and /requirements/requirements.txt \
@@ -95,7 +95,7 @@ RUN bash -exc ': \
     fi \
     && if [ \"x$WITH_VSCODE\" = \"x1\" ];then  venv/bin/python -m pip install -U \"ptvsd${VSCODE_VERSION}\";fi \
     && if [ \"x$WITH_PYCHARM\" = \"x1\" ];then venv/bin/python -m pip install -U \"pydevd-pycharm${PYCHARM_VERSION}\";fi \
-    && if [ -e setup.py ];then venv/bin/python -m pip install -e .;fi \
+    && if [ -e setup.py ];then venv/bin/python -m pip install --no-deps -e .;fi \
     && date \
     "'
 
