@@ -66,7 +66,7 @@ ARG PIP_REQ="pip==${MINIMUM_PIP_VERSION}"
 ARG PIPENV_REQ="pipenv>=${MINIMUM_PIP_VERSION}"
 ARG WHEEL_REQ="wheel>=${MINIMUM_WHEEL_VERSION}"
 # Install now python deps without editable filter
-ADD --chown=flask:flask lib ${PIP_SRC}/
+ADD --chown=flask:flask lib lib/
 # warning: TOP requirements adds are done via the *txt glob
 ADD --chown=flask:flask setup.* *.ini *.rst *.md *.txt README* requirements* /code/
 # only bring minimal py for now as we get only deps (CI optims)
